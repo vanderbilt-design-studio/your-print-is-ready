@@ -1,4 +1,4 @@
-# Design Studio -- Your Print is Ready
+# [Design Studio](https://vanderbilt.design): Your Print is Ready
 
 "Your Print is Ready" is a project that seeks to improve the 3D printing workflow at the Design Studio (DS). Several DS mentors were interviewed to identify printing habits and pain points. From these interviews, one overarching problem of interest was identified: you have to be physically present to know printer and print job status. This project aims to alleviate it by enabling both mentors and users to query printer and print job status remotely.
 
