@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.0)
 project(your-print-is-ready)
 
 set(your-print-is-ready VERSION MAJOR 0)
@@ -13,7 +14,6 @@ set (FLAGS "-DRASPBERRYPI")
 include_directories (${WIRINGPI_INCLUDE_DIR})
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
-add_subdirectory (src)
 
 set (POLLER_PI_SOURCE_FILES
 	./src/poller-pi/main.cpp
