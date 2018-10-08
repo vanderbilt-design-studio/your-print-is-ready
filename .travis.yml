@@ -6,6 +6,11 @@ install:
     - cmake -DCMAKE_TOOLCHAIN_FILE=../../../cmake/toolchain/toolchain-rpi-travis-c.cmake . && make -j$(nproc)
     - cd ../../../
 script:
-    - cmake -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain/toolchain-rpi-travis-cxx.cmake . && make -j$(nproc)
+    - cd poller-pi
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/toolchain-rpi-travis-cxx.cmake . && make -j$(nproc)
+    - cd ..
+    - cd ds-server
+    - cmake . && make -j$(nproc)
+    - cd ..
 
 
