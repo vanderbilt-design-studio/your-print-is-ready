@@ -1,6 +1,6 @@
-[submodule "wiringPi"]
-	path = wiringPi
-	url = git://git.drogon.net/wiringPi
 [submodule "tools"]
 	path = tools
 	url = https://github.com/raspberrypi/tools
+[submodule "libs/wiringPi"]
+	path = libs/wiringPi
+	url = git://git.drogon.net/wiringPi
