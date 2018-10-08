@@ -12,7 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
 
 # Create a variable that holds the path to our libwiringPi.so file
-set (WPI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/wiringPi/wiringPi)
+set (WPI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../libs/wiringPi/wiringPi)
 # Add the local ‘include’ directory and the wiringPi directory to grab headers
 include_directories (include ${WPI_PATH})
 # Actually find the wiringPi library object

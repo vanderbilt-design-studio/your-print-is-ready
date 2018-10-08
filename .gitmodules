@@ -7,3 +7,6 @@
 [submodule "libs/libwebsockets"]
 	path = libs/libwebsockets
 	url = https://github.com/warmcat/libwebsockets
+[submodule "libs/openssl"]
+	path = libs/openssl
+	url = https://github.com/openssl/openssl
