@@ -9,7 +9,6 @@ FILE(GLOB SRC_FILES *.c)
 
 # make this output a shared library (with .so output)
 add_library (wiringPi SHARED ${SRC_FILES})
-add_definitions(-D_GNU_SOURCE)
 
 # be sure to include the current source directory for header files
 target_include_directories (wiringPi PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
