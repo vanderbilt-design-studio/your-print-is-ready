@@ -26,7 +26,7 @@ endif()
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 set(POLLER_PI_SOURCE_FILES
-	./src/poller-pi/main.cpp
+	./src/main.cpp
 )
 add_executable(poller-pi ${POLLER_PI_SOURCE_FILES})
 target_link_libraries(poller-pi ${WPI_LIB})
