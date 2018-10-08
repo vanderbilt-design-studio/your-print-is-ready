@@ -13,6 +13,5 @@ script:
     - cmake . && make -j$(nproc)
     - cd ..
     - scripts/build_openssl.sh
-    - scripts/build_libwebsockets_travis.sh
 
 

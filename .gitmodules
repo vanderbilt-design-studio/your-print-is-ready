@@ -4,9 +4,6 @@
 [submodule "libs/wiringPi"]
 	path = libs/wiringPi
 	url = git://git.drogon.net/wiringPi
-[submodule "libs/libwebsockets"]
-	path = libs/libwebsockets
-	url = https://github.com/warmcat/libwebsockets
 [submodule "libs/openssl"]
 	path = libs/openssl
 	url = https://github.com/openssl/openssl
