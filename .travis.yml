@@ -1,9 +1,9 @@
 language: cpp
 dist: trusty
 install:
-    - cp cmake/wiringPi/CMakeLists.txt wiringPi/wiringPi && cp toolchain-rpi-c.cmake wiringPi/wiringPi
+    - cp cmake/wiringPi/CMakeLists.txt wiringPi/wiringPi
     - cd wiringPi/wiringPi/
-    - cmake -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain/toolchain-rpi-travis-c.cmake . && make -j$(nproc)
+    - cmake -DCMAKE_TOOLCHAIN_FILE=../../cmake/toolchain/toolchain-rpi-travis-c.cmake . && make -j$(nproc)
     - cd ../../
 script:
     - cmake -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain/toolchain-rpi-travis-cxx.cmake . && make -j$(nproc)
