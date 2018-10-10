@@ -1,9 +1,6 @@
-[submodule "tools"]
-	path = tools
-	url = https://github.com/raspberrypi/tools
-[submodule "libs/wiringPi"]
-	path = libs/wiringPi
-	url = git://git.drogon.net/wiringPi
-[submodule "libs/openssl"]
-	path = libs/openssl
-	url = https://github.com/openssl/openssl
+[submodule "libs/beast"]
+	path = libs/beast
+	url = https://github.com/boostorg/beast
+[submodule "libs/asio"]
+	path = libs/asio
+	url = https://github.com/boostorg/asio

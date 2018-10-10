@@ -1,17 +1,13 @@
-language: cpp
-dist: trusty
+language: python
+python:
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  - "3.7"
+# command to install dependencies
 install:
-    - cp cmake/wiringPi/CMakeLists.txt libs/wiringPi/wiringPi
-    - cd libs/wiringPi/wiringPi/
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../../../cmake/toolchain/toolchain-rpi-travis-c.cmake . && make -j$(nproc)
-    - cd ../../../
+  - pip install -r requirements.txt
+# command to run tests
 script:
-    - cd poller-pi
-    - cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/toolchain-rpi-travis-cxx.cmake . && make -j$(nproc)
-    - cd ..
-    - cd ds-server
-    - cmake . && make -j$(nproc)
-    - cd ..
-    - scripts/build_openssl.sh
-
-
+  - python -m unittest -v

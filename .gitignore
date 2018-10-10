@@ -1,5 +1,3 @@
-CMakeFiles/
-bin/*
-Makefile
-cmake_install.cmake
-CMakeCache.txt
+.env/
+.vscode/
+__pycache__
