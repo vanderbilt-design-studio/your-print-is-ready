@@ -45,16 +45,18 @@ class CredentialsDict(OrderedDict):
             try:
                 credentials_json = json.load(credentials_file)
             except Exception as e:
-                print(f'Exception in parsing credentials.json, pretending it is empty: {e}')
+                print(
+                    f'Exception in parsing credentials.json, pretending it is empty: {e}')
                 credentials_json = {}
         for serial, credentials in credentials_json.items():
             try:
                 # Convert json to a dictionary of field to value mappings
                 kwargs = dict([(field, credentials[field])
-                            for field in Credentials._fields])
+                               for field in Credentials._fields])
                 self[Serial(serial_string=serial)] = Credentials(**kwargs)
             except Exception as e:
-                print(f'Exception in parsing a credential in credentials.json with serial {serial}, skipping it: {e}')
+                print(
+                    f'Exception in parsing a credential in credentials.json with serial {serial}, skipping it: {e}')
 
     def save(self):
         credentials_json: Dict[str, str] = {}
@@ -64,7 +66,8 @@ class CredentialsDict(OrderedDict):
             json.dump(self, credentials_file)
 
 
-ultimaker_credentials: Dict[Serial, Credentials] = CredentialsDict(ultimaker_credentials_filename)
+ultimaker_credentials_dict: Dict[Serial, Credentials] = CredentialsDict(
+    ultimaker_credentials_filename)
 
 
 class Printer():
@@ -72,29 +75,39 @@ class Printer():
         self.name = name
         self.address = address
         self.port = port
-        print(self.name, self.address)
+        self.credentials_dict = ultimaker_credentials_dict
 
-    def acquire_authorization(self):
-        if self.is_authorized():
-            return
+    def acquire_credentials(self):
+        if self.name in self.credentials_dict:
+            if self.get_auth_verify():
+                return
+            else:
+                del self.credentials_dict[self.name]
         credentials_json = self.post_auth_request()
         self.save_credentials(credentials_json)
 
     def is_authorized(self) -> bool:
-        if self.name in ultimaker_credentials:
-            return self.get_auth_check()["message"] == "authorized"
+        if self.name in self.credentials_dict:
+            if self.get_auth_verify():
+                return self.get_auth_check() == "authorized"
         return False
 
     def save_credentials(self, credentials_json: Dict):
-        ultimaker_credentials[Credentials(**credentials_json)]
-        ultimaker_credentials.save()
+        self.credentials_dict[Credentials(**credentials_json)]
+        self.credentials_dict.save()
 
     def post_auth_request(self) -> Dict:
         res = requests.post(url=f"{self.address}/auth/request",
                             data={'application': ultimaker_application_name, 'user': ultimaker_user_name})
         return json.load(res.content)
 
-    def get_auth_check(self) -> Dict:
+    def get_auth_check(self) -> str:
         res = requests.get(url=f"{self.address}/auth/check",
-                           params={'id': ultimaker_credentials[self.name].id})
-        return json.load(res.content)
+                           params={'id': self.credentials_dict[self.name].id})
+        return json.load(res.content)["message"]
+
+    def get_auth_verify(self) -> bool:
+        credentials = self.credentials_dict[self.name]
+        res = requests.get(url=f"{self.address}/auth/verify",
+                           auth=HTTPDigestAuth(credentials.id, credentials.key))
+        return res.ok

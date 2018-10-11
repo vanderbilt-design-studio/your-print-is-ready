@@ -26,7 +26,7 @@ class PrinterListener:
         printer = Printer(info.properties[b'name'], socket.inet_ntoa(
             info.address), info.port)
         printers[serial] = printer
-        # printer.acquire_authorization()
+        printer.acquire_credentials()
 
 
 zeroconf = Zeroconf()
