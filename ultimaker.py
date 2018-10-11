@@ -41,8 +41,11 @@ Credentials = namedtuple('Credentials', ['id', 'key'])
 class CredentialsDict(OrderedDict):
     def __init__(self, credentials_filename):
         self.credentials_filename = credentials_filename
-        with open(credentials_filename, 'r+') as credentials_file:
-            credentials_json = json.load(credentials_file)
+        with open(credentials_filename, 'w+') as credentials_file:
+            try:
+                credentials_json = json.load(credentials_file)
+            except:
+                credentials_json = {}
         try:
             for serial, credentials in credentials_json.items():
                 # Convert json to a dictionary of field to value mappings
@@ -57,12 +60,11 @@ class CredentialsDict(OrderedDict):
         credentials_json: Dict[str, str] = {}
         for serial, credentials in credentials_json.items():
             credentials_json[serial] = credentials._asdict()
-        with open(self.credentials_filename, 'w') as credentials_file:
+        with open(self.credentials_filename, 'w+') as credentials_file:
             json.dump(self, credentials_file)
 
 
-ultimaker_credentials: Dict[Serial, Credentials] = CredentialsDict(
-    ultimaker_credentials_filename)
+ultimaker_credentials: Dict[Serial, Credentials] = CredentialsDict(ultimaker_credentials_filename)
 
 
 class Printer():
