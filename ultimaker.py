@@ -31,10 +31,6 @@ import re
 # A user/password pair
 Credentials = namedtuple('Credentials', ['id', 'key'])
 
-def parse_server(server: str) -> UUID:
-    server_pattern = re.compile('ultimakersystem(\w+?)\.local\.')
-    return server_pattern.match(server).group(0)
-
 
 class CredentialsDict(OrderedDict):
     def __init__(self, credentials_filename):
@@ -87,20 +83,19 @@ PrintJob = namedtuple('PrintJob', ['time_elapsed', 'time_total', 'datetime_start
 
 
 class Printer():
-    def __init__(self, uuid: UUID, address: str, port: str):
-        self.uuid = uuid
-        self.address = address
-        self.port = port
+    def __init__(self, address: str, port: str, guid=None):
+        self.host = f'{address}:{port}'
         self.credentials_dict = ultimaker_credentials_dict
+        self.guid = guid if guid else self.get_system_guid()
 
     def acquire_credentials(self):
         credentials_json = self.post_auth_request()
         self.set_credentials(credentials_json)
 
     def credentials(self) -> Credentials:
-        if self.uuid not in self.credentials_dict or not self.get_auth_verify():
+        if self.guid not in self.credentials_dict or not self.get_auth_verify():
             self.acquire_credentials()
-        return self.credentials_dict[self.uuid]
+        return self.credentials_dict[self.guid]
 
     def digest_auth(self) -> HTTPDigestAuth:
         credentials = self.credentials()
@@ -111,7 +106,7 @@ class Printer():
         return self.get_auth_check() == 'authorized'
 
     def set_credentials(self, credentials_json: Dict):
-        self.credentials_dict[self.uuid] = Credentials(**credentials_json)
+        self.credentials_dict[self.guid] = Credentials(**credentials_json)
         self.credentials_dict.save()
 
     # All of the request functions below are from the Ultimaker Swagger Api available at http://PRINTER_ADDRESS/docs/api/
@@ -119,34 +114,38 @@ class Printer():
     # -------------------------------------------------------------------------------------------------------------------
 
     def post_auth_request(self) -> Dict:
-        res = requests.post(url=f"{self.address}/auth/request",
+        res = requests.post(url=f"{self.host}/auth/request",
                             data={'application': ultimaker_application_name, 'user': ultimaker_user_name})
         return json.load(res.content)
 
     # Returns the response from an authorization check
     def get_auth_check(self) -> str:
-        res = requests.get(url=f"{self.address}/auth/check",
-                           params={'id': self.credentials_dict[self.uuid].id})
+        res = requests.get(url=f"{self.host}/auth/check",
+                           params={'id': self.credentials_dict[self.guid].id})
         return json.load(res.content)["message"]
 
     # Returns whether the credentials are known to the printer. They may not be if the printer was reset.
     # Note that this is completely different from get_auth_check.
     def get_auth_verify(self) -> bool:
         res = requests.get(
-            url=f"{self.address}/auth/verify", auth=self.digest_auth())
+            url=f"{self.host}/auth/verify", auth=self.digest_auth())
         return res.ok
 
     def get_printer_status(self) -> str:
         res = requests.get(
-            url=f"{self.address}/printer/status", auth=self.digest_auth())
+            url=f"{self.host}/printer/status", auth=self.digest_auth())
         return res.text
 
     def get_print_job(self) -> PrintJob:
         res = requests.get(
-            url=f"{self.address}/print_job", auth=self.digest_auth())
+            url=f"{self.host}/print_job", auth=self.digest_auth())
         return PrintJob(**json.load(res))
 
     def get_print_job_state(self) -> str:
         res = requests.get(
-            url=f"{self.address}/print_job/state", auth=self.digest_auth())
+            url=f"{self.host}/print_job/state", auth=self.digest_auth())
+        return res.text
+
+    def get_system_guid(self) -> UUID:
+        res = requests.get(url=f'{self.host}/system/guid')
         return res.text

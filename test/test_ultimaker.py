@@ -8,7 +8,7 @@ with open(config.ultimaker_credentials_filename, 'w+') as credentials_file:
 from ultimaker import Printer, CredentialsDict, Credentials
 from uuid import UUID, uuid4
 
-mock_uuid: UUID = uuid4()
+mock_guid: UUID = uuid4()
 mock_address = '127.0.0.1'
 mock_port = '8080'
 mock_id = '1234'
@@ -17,8 +17,9 @@ mock_credentials_json = {'id': mock_id, 'key': mock_key}
 
 
 def default_printer_mock() -> Printer:
-    printer = Printer(mock_uuid, mock_address, mock_port)
+    printer = Printer(mock_address, mock_port, mock_guid)
     printer.credentials_dict = default_credentials_dict_mock()
+    # TODO: understand unittest.mock patch method so the set_credentials method can be asserted on
     #printer.set_credentials = patch.object(printer, 'set_credentials', wraps=printer.set_credentials)
     printer.post_auth_request = Mock(
         return_value=mock_credentials_json)
@@ -29,7 +30,7 @@ def default_printer_mock() -> Printer:
 
 def default_credentials_dict_mock() -> CredentialsDict:
     credentials_dict = CredentialsDict('/tmp/credentials.json')
-    credentials_dict[mock_uuid] = Credentials(**mock_credentials_json)
+    credentials_dict[mock_guid] = Credentials(**mock_credentials_json)
     credentials_dict.save = Mock()
     return credentials_dict
 
@@ -37,7 +38,7 @@ def default_credentials_dict_mock() -> CredentialsDict:
 class AcquireCredentials(unittest.TestCase):
     def setUp(self):
         printer = default_printer_mock()
-        del printer.credentials_dict[mock_uuid]
+        del printer.credentials_dict[mock_guid]
         self.printer = printer
 
     def test_printer_acquires_credentials(self):

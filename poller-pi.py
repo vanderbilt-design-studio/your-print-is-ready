@@ -5,25 +5,23 @@ import requests
 from zeroconf import ServiceBrowser, Zeroconf, ZeroconfServiceTypes, ServiceInfo
 from typing import Dict, List
 import socket
-from ultimaker import Printer, parse_server
+from ultimaker import Printer
 from config import server_uri, ultimaker_application_name, ultimaker_user_name
 from uuid import UUID
 
-printers: Dict[UUID, Printer] = {}
+printers: Dict[str, Printer] = {}
 
 
 class PrinterListener:
     def remove_service(self, zeroconf, type, name):
-        info: ServiceInfo = zeroconf.get_service_info(type, name)
-        printers.pop(UUID(parse_server(info.name)))
+        printers.pop(name)
         print("Service %s removed" % (name,))
 
     def add_service(self, zeroconf, type, name):
         print("Service %s added" % (name,))
         info: ServiceInfo = zeroconf.get_service_info(type, name)
-        uuid = UUID(parse_server(info.server))
-        printer = Printer(uuid, socket.inet_ntoa(info.address), info.port)
-        printers[uuid] = printer
+        printer = Printer(socket.inet_ntoa(info.address), info.port)
+        printers[name] = printer
 
 
 zeroconf = Zeroconf()
