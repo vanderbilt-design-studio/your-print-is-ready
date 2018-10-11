@@ -100,10 +100,9 @@ class CredentialsDictTest(unittest.TestCase):
 class CredentialsDictEdgeCaseTest(unittest.TestCase):
     def test_credentials_file_loads_empty_when_json_completely_invalid(self):
         invalid_json_credentials_dict = CredentialsDict(
-            f'/tmp/credentials_{uuid4()}.json')        
+            f'/tmp/credentials_{uuid4()}.json')
         self.assertDictEqual(invalid_json_credentials_dict, {})
         os.remove(invalid_json_credentials_dict.credentials_filename)
-
 
     def test_credentials_file_loads_some_when_json_partially_invalid(self):
         partially_valid_json_filename = f'/tmp/credentials_{uuid4()}.json'

@@ -118,38 +118,31 @@ class Printer():
     # -------------------------------------------------------------------------------------------------------------------
 
     def post_auth_request(self) -> Dict:
-        res = requests.post(url=f"{self.host}/auth/request",
-                            data={'application': ultimaker_application_name, 'user': ultimaker_user_name})
-        return json.load(res.content)
+        return json.load(requests.post(url=f"{self.host}/auth/request",
+                                       data={'application': ultimaker_application_name, 'user': ultimaker_user_name}))
 
     # Returns the response from an authorization check
     def get_auth_check(self) -> str:
-        res = requests.get(url=f"{self.host}/auth/check",
-                           params={'id': self.credentials_dict[self.guid].id})
-        return json.load(res.content)["message"]
+        return json.load(requests.get(url=f"{self.host}/auth/check",
+                                      params={'id': self.credentials_dict[self.guid].id}).content)['message']
 
     # Returns whether the credentials are known to the printer. They may not be if the printer was reset.
     # Note that this is completely different from get_auth_check.
     def get_auth_verify(self) -> bool:
-        res = requests.get(
-            url=f"{self.host}/auth/verify", auth=self.digest_auth())
-        return res.ok
+        return requests.get(
+            url=f"{self.host}/auth/verify", auth=self.digest_auth()).ok
 
     def get_printer_status(self) -> str:
-        res = requests.get(
-            url=f"{self.host}/printer/status", auth=self.digest_auth())
-        return res.text
+        return requests.get(
+            url=f"{self.host}/printer/status", auth=self.digest_auth()).text
 
     def get_print_job(self) -> PrintJob:
-        res = requests.get(
-            url=f"{self.host}/print_job", auth=self.digest_auth())
-        return PrintJob(**json.load(res))
+        return PrintJob(**json.load(requests.get(
+            url=f"{self.host}/print_job", auth=self.digest_auth())))
 
     def get_print_job_state(self) -> str:
-        res = requests.get(
-            url=f"{self.host}/print_job/state", auth=self.digest_auth())
-        return res.text
+        return requests.get(
+            url=f"{self.host}/print_job/state", auth=self.digest_auth()).text
 
     def get_system_guid(self) -> UUID:
-        res = requests.get(url=f'{self.host}/system/guid')
-        return res.text
+        return requests.get(url=f'{self.host}/system/guid').text
