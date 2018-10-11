@@ -1,5 +1,7 @@
 import unittest
 from unittest.mock import Mock
+import config
+config.ultimaker_credentials_filename = '/tmp/credentials.json'
 from ultimaker import Printer, CredentialsDict
 
 
