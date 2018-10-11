@@ -11,6 +11,6 @@ install:
   - pip install -r requirements.txt
 # command to run tests
 script:
-  - coverage run -m unittest -v --omit '/home/travis/virtualenv*'
+  - coverage run --omit '/home/travis/virtualenv*' -m unittest -v
 after_success:
     coveralls
