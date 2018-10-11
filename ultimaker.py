@@ -53,7 +53,7 @@ class CredentialsDict(OrderedDict):
                 self[UUID(guid)] = Credentials(**kwargs)
             except Exception as e:
                 print(
-                    f'Exception in parsing the credentials instance in credentials.json with uuid {uuid}, skipping it: {e}')
+                    f'Exception in parsing the credentials instance in credentials.json with guid {guid}, skipping it: {e}')
 
     def save(self):
         credentials_json: Dict[str, str] = {}
