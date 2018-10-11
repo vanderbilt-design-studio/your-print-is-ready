@@ -44,17 +44,17 @@ class CredentialsDict(OrderedDict):
         with open(credentials_filename, 'w+') as credentials_file:
             try:
                 credentials_json = json.load(credentials_file)
-            except:
+            except Exception as e:
+                print(f'Exception in parsing credentials.json, pretending it is empty: {e}')
                 credentials_json = {}
-        try:
-            for serial, credentials in credentials_json.items():
+        for serial, credentials in credentials_json.items():
+            try:
                 # Convert json to a dictionary of field to value mappings
                 kwargs = dict([(field, credentials[field])
-                               for field in Credentials._fields])
+                            for field in Credentials._fields])
                 self[Serial(serial_string=serial)] = Credentials(**kwargs)
-        except Exception as e:
-            print(f'Encountered exception trying to load credentials.json {e}')
-            return None
+            except Exception as e:
+                print(f'Exception in parsing a credential in credentials.json with serial {serial}, skipping it: {e}')
 
     def save(self):
         credentials_json: Dict[str, str] = {}
