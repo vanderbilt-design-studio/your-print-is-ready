@@ -43,22 +43,26 @@ class CredentialsDict(OrderedDict):
                 print(
                     f'Exception in parsing credentials.json, pretending it is empty: {e}')
                 credentials_json = {}
-        for uuid, credentials in credentials_json.items():
+        guid: UUID
+        credentials: Credentials
+        for guid, credentials in credentials_json.items():
             try:
                 # Convert json to a dictionary of field to value mappings
                 kwargs = dict([(field, credentials[field])
                                for field in Credentials._fields])
-                self[UUID(uuid)] = Credentials(**kwargs)
+                self[UUID(guid)] = Credentials(**kwargs)
             except Exception as e:
                 print(
                     f'Exception in parsing the credentials instance in credentials.json with uuid {uuid}, skipping it: {e}')
 
     def save(self):
         credentials_json: Dict[str, str] = {}
-        for serial, credentials in credentials_json.items():
-            credentials_json[serial] = credentials._asdict()
-        with open(self.credentials_filename, 'w+') as credentials_file:
-            json.dump(self, credentials_file)
+        guid: UUID
+        credentials: Credentials
+        for guid, credentials in self.items():
+            credentials_json[guid.hex] = credentials._asdict()
+        with open(self.credentials_filename, 'w') as credentials_file:
+            json.dump(credentials_json, credentials_file)
 
 
 ultimaker_credentials_dict: Dict[UUID, Credentials] = CredentialsDict(
