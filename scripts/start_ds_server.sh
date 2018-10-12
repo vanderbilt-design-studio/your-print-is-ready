@@ -1,1 +1,3 @@
-python /opt/your-print-is-ready/ds-server.py &
+cd /opt/your-print-is-ready/
+source .env/bin/activate
+python3 ds-server.py &

@@ -1,7 +1,7 @@
 version: 0.0
 os: linux
 files:
-  - source: /*py
+  - source: /ds-server.py
     destination: /opt/your-print-is-ready/
 hooks:
   BeforeInstall:
