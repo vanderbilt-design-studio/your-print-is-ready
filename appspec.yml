@@ -1,0 +1,18 @@
+version: 0.0
+os: linux
+files:
+  - source: /*py
+    destination: /opt/your-print-is-ready/
+hooks:
+  BeforeInstall:
+    - location: scripts/install_ds_server.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: scripts/start_ds_server.sh
+      timeout: 300
+      runas: root
+  ApplicationStop:
+    - location: scripts/stop_ds_server.sh
+      timeout: 300
+      runas: root
