@@ -1,1 +1,1 @@
-mkdir your-print-is-ready
+mkdir -p your-print-is-ready
