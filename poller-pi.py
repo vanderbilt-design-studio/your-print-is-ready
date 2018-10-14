@@ -12,6 +12,7 @@ import json
 import os
 import ssl
 import logging
+import socket
 
 
 logging.basicConfig(filename='/var/log/poller-pi.log',
@@ -43,24 +44,30 @@ ssl_context = ssl.create_default_context()
 
 
 async def send_printer_status():
-    async with websockets.connect(server_uri, ssl=ssl_context) as websocket:
-        websocket.send(json.dumps(x_api_key))
-        while True:
-            printer_jsons: List[Dict[str, str]] = []
-            printer: Printer
-            for printer in list(printers_by_name.values()):
-                try:
-                    printer_status_json: Dict[str,
-                                              str] = printer.into_printer_status_json()
-                    printer_jsons.append(printer_status_json)
-                except Exception as e:
-                    logging.warning(
-                        f'Exception getting info for printer {printer.guid}, it may no longer exist: {e}')
-                    continue
-            printer_jsons_str: str = json.dumps(printer_jsons)
-            logging.info(f'Sending {printer_jsons_str}')
-            await websocket.send(printer_jsons_str)
-            await asyncio.sleep(1)
+    while True:
+        try:
+            async with websockets.connect(server_uri, ssl=ssl_context) as websocket:
+                websocket.send(json.dumps(x_api_key))
+                while True:
+                    printer_jsons: List[Dict[str, str]] = []
+                    printer: Printer
+                    for printer in list(printers_by_name.values()):
+                        try:
+                            printer_status_json: Dict[str,
+                                                      str] = printer.into_printer_status_json()
+                            printer_jsons.append(printer_status_json)
+                        except Exception as e:
+                            logging.warning(
+                                f'Exception getting info for printer {printer.guid}, it may no longer exist: {e}')
+                            continue
+                    printer_jsons_str: str = json.dumps(printer_jsons)
+                    logging.info(f'Sending {printer_jsons_str}')
+                    await websocket.send(printer_jsons_str)
+                    await asyncio.sleep(1)
+        except socket.error as serr:
+            logging.warning(
+                f"Exception while trying to send status to ds-server, attempting to connect again: {serr}")
+
 
 try:
     asyncio.get_event_loop().run_until_complete(send_printer_status())

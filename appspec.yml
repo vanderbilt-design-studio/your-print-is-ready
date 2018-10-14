@@ -3,6 +3,8 @@ os: linux
 files:
   - source: /ds-server.py
     destination: /opt/your-print-is-ready/
+  - source: /config.py
+    destination: /opt/your-print-is-ready/
   - source: /requirements.txt
     destination: /opt/your-print-is-ready/
 hooks:
