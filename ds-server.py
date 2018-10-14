@@ -6,10 +6,11 @@ import json
 import http
 import logging
 import secrets
-from typing import Set
+from typing import Set, List
 import os
+from config import logging_format
 
-logging.basicConfig(filename='/var/log/ds-server.log')
+logging.basicConfig(filename='/var/log/ds-server.log', level=logging.INFO, format=logging_format)
 
 x_api_key = os.environ['X_API_KEY']
 

@@ -119,11 +119,11 @@ class Printer():
     def into_printer_status_json(self) -> Dict[str, str]:
         if not self.is_authorized():
             return {
-                'guid': self.guid,
+                'guid': self.guid.hex,
                 'name': self.get_system_name()
             }
         return {
-            'guid': self.guid,
+            'guid': self.guid.hex,
             'name': self.get_system_name(),
             'printer_status': self.get_printer_status(),
             'print_job_state': self.get_print_job_state()
@@ -139,8 +139,7 @@ class Printer():
 
     # Returns the response from an authorization check
     def get_auth_check(self) -> str:
-        return requests.get(url=f"http://{self.host}/api/v1/auth/check",
-                            params={'id': self.credentials_dict[self.guid].id}).json()['message']
+        return requests.get(url=f"http://{self.host}/api/v1/auth/check/{self.credentials_dict[self.guid].id}").json()['message']
 
     # Returns whether the credentials are known to the printer. They may not be if the printer was reset.
     # Note that this is completely different from get_auth_check.

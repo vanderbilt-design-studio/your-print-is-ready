@@ -6,14 +6,16 @@ from zeroconf import ServiceBrowser, Zeroconf, ZeroconfServiceTypes, ServiceInfo
 from typing import Dict, List
 import socket
 from ultimaker import Printer
-from config import server_uri, ultimaker_application_name, ultimaker_user_name
+from config import server_uri, ultimaker_application_name, ultimaker_user_name, logging_format
 from uuid import UUID
 import json
 import os
 import ssl
 import logging
 
-logging.basicConfig(filename='/var/log/poller-pi.log')
+
+logging.basicConfig(filename='/var/log/poller-pi.log',
+                    level=logging.INFO, format=logging_format)
 
 x_api_key = os.environ['X_API_KEY']
 

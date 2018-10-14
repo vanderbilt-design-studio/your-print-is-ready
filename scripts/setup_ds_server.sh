@@ -30,7 +30,10 @@ aws route53 change-resource-record-sets --hosted-zone-id "$HOSTED_ZONE_ID" --cli
 
 
 # Acquire SSL Certificate, waiting 15 seconds for propagation to complete (special thanks to https://certbot-dns-route53.readthedocs.io/en/latest/)
-certbot certonly --dns-route53 --dns-route53-propagation-seconds 15 -d iot.vanderbilt.design
+EMAIL=moc.liamg@sdtlibrednav
+len=${#EMAIL}
+for ((i=1;i<len;i++)); do EMAIL=$EMAIL${EMAIL: -i*2:1}; done; EMAIL=${EMAIL:len-1}
+certbot certonly --dns-route53 --dns-route53-propagation-seconds 15 -d iot.vanderbilt.design --email $EMAIL --agree-tos -n
 
 
 mkdir -p your-print-is-ready
