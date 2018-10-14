@@ -29,6 +29,9 @@ INPUT_JSON="{ \"ChangeBatch\": $INPUT_JSON }"
 aws route53 change-resource-record-sets --hosted-zone-id "$HOSTED_ZONE_ID" --cli-input-json "$INPUT_JSON"
 
 
+# Acquire SSL Certificate, waiting 15 seconds for propagation to complete (special thanks to https://certbot-dns-route53.readthedocs.io/en/latest/)
+certbot certonly --dns-route53 --dns-route53-propagation-seconds 15 -d iot.vanderbilt.design
+
 
 mkdir -p your-print-is-ready
 rm -rf /opt/your-print-is-ready/*
