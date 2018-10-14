@@ -100,7 +100,7 @@ class Printer():
     def credentials(self) -> Credentials:
         if self.guid not in self.credentials_dict:
             self.acquire_credentials()
-        elif not self.credentials_verified not self.get_auth_verify(self.credentials_dict[self.guid]):
+        elif not self.credentials_verified and not self.get_auth_verify(self.credentials_dict[self.guid]):
             del self.credentials_dict[self.guid]
             self.acquire_credentials()
         self.credentials_verified = True
