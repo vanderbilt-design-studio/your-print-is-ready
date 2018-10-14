@@ -33,14 +33,17 @@ async def notify_of_state_change():
 
 async def register_client(websocket: websockets.WebSocketServerProtocol):
     clients.add(websocket)
+    logging.info(f'Client {websocket.remote_address.host}:{websocket.remote_address.port} joined')
     await websocket.send(state_json())
 
 
 async def unregister_client(websocket: websockets.WebSocketServerProtocol):
+    logging.info(f'Client {websocket.remote_address.host}:{websocket.remote_address.port} left')
     clients.remove(websocket)
 
 
 async def event_loop(websocket: websockets.WebSocketServerProtocol, path):
+    # The first message should just be the API key if it's a poller, otherwise the word client.
     message = await websocket.recv()
     if secrets.compare_digest(message, x_api_key):
         poller_pi = websocket
@@ -48,13 +51,14 @@ async def event_loop(websocket: websockets.WebSocketServerProtocol, path):
             async for message in websocket:
                 new_printer_jsons = json.loads(message)
                 if new_printer_jsons != printer_jsons:
+                    logging.info(f'Poller at {websocket.remote_address.host}:{websocket.remote_address.port} sent new json {new_printer_jsons}')
                     await notify_of_state_change()
                     printer_jsons = new_printer_jsons
         finally:
             poller_pi = None
     else:
+        await register_client(websocket)
         try:
-            await register_client(websocket)
             # This just forces the server to keep the connection alive until the client leaves
             async for message in websocket:
                 continue

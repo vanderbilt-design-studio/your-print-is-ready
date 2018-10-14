@@ -42,6 +42,7 @@ ssl_context = ssl.create_default_context()
 
 async def send_printer_status():
     async with websockets.connect(server_uri, ssl=ssl_context) as websocket:
+        websocket.send(json.dumps(x_api_key))
         while True:
             printer_jsons: List[Dict[str, str]] = []
             printer: Printer
