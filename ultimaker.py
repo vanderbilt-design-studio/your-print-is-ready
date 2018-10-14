@@ -83,7 +83,7 @@ ultimaker_credentials_dict: Dict[UUID, Credentials] = CredentialsDict(
 #   "state": "none"
 # }
 PrintJob = namedtuple('PrintJob', ['time_elapsed', 'time_total', 'datetime_started', 'datetime_finished',
-                                   'datetime_cleaned', 'source', 'source_user', 'source_application', 'name', 'uuid', 'reprint_original_uuid', 'state'])
+                                   'datetime_cleaned', 'source', 'source_user', 'source_application', 'name', 'uuid', 'reprint_original_uuid', 'state', 'progress'])
 
 
 class Printer():
@@ -97,7 +97,10 @@ class Printer():
         self.set_credentials(credentials_json)
 
     def credentials(self) -> Credentials:
-        if self.guid not in self.credentials_dict or not self.get_auth_verify():
+        if self.guid not in self.credentials_dict:
+            self.acquire_credentials()
+        elif not self.get_auth_verify(self.credentials_dict[self.guid]):
+            del self.credentials_dict[self.guid]
             self.acquire_credentials()
         return self.credentials_dict[self.guid]
 
@@ -118,31 +121,41 @@ class Printer():
     # -------------------------------------------------------------------------------------------------------------------
 
     def post_auth_request(self) -> Dict:
-        return json.load(requests.post(url=f"{self.host}/auth/request",
-                                       data={'application': ultimaker_application_name, 'user': ultimaker_user_name}))
+        return requests.post(url=f"http://{self.host}/api/v1/auth/request",
+                             data={'application': ultimaker_application_name, 'user': ultimaker_user_name}).json()
 
     # Returns the response from an authorization check
     def get_auth_check(self) -> str:
-        return json.load(requests.get(url=f"{self.host}/auth/check",
-                                      params={'id': self.credentials_dict[self.guid].id}).content)['message']
+        return requests.get(url=f"http://{self.host}/api/v1/auth/check",
+                            params={'id': self.credentials_dict[self.guid].id}).json()['message']
 
     # Returns whether the credentials are known to the printer. They may not be if the printer was reset.
     # Note that this is completely different from get_auth_check.
-    def get_auth_verify(self) -> bool:
+    def get_auth_verify(self, credentials: Credentials) -> bool:
         return requests.get(
-            url=f"{self.host}/auth/verify", auth=self.digest_auth()).ok
+            url=f"http://{self.host}/api/v1/auth/verify", auth=HTTPDigestAuth(credentials.id, credentials.key)).ok
 
     def get_printer_status(self) -> str:
         return requests.get(
-            url=f"{self.host}/printer/status", auth=self.digest_auth()).text
+            url=f"http://{self.host}/api/v1/printer/status", auth=self.digest_auth()).text
 
     def get_print_job(self) -> PrintJob:
-        return PrintJob(**json.load(requests.get(
-            url=f"{self.host}/print_job", auth=self.digest_auth())))
+        return PrintJob(**requests.get(
+            url=f"http://{self.host}/api/v1/print_job", auth=self.digest_auth()).json())
 
     def get_print_job_state(self) -> str:
         return requests.get(
-            url=f"{self.host}/print_job/state", auth=self.digest_auth()).text
+            url=f"http://{self.host}/api/v1/print_job/state", auth=self.digest_auth()).text
+
+    def put_system_display_message(self, message: str, button_caption: str) -> str:
+        return requests.put(url=f"http://{self.host}/api/v1/system/display_message", auth=self.digest_auth(), json={'message': message, 'button_caption': button_caption}).text
+
+    # Doesn't work as far as I've tested it
+    def put_beep(self, frequency: float, duration: float) -> str:
+        return requests.put(url=f"http://{self.host}/api/v1/beep", auth=self.digest_auth(), json={'frequency': frequency, 'duration': duration}).text
 
     def get_system_guid(self) -> UUID:
-        return requests.get(url=f'{self.host}/system/guid').text
+        return UUID(requests.get(url=f'http://{self.host}/api/v1/system/guid').json())
+
+    def get_system_name(self) -> str:
+        return requests.get(url=f'http://{self.host}/api/v1/system/name').json()

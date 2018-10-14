@@ -23,6 +23,7 @@ class PrinterListener:
         info: ServiceInfo = zeroconf.get_service_info(type, name)
         printer = Printer(socket.inet_ntoa(info.address), info.port)
         printers[name] = printer
+        print(printer.guid, printer.get_printer_status())
 
 
 zeroconf = Zeroconf()
@@ -38,6 +39,7 @@ async def send_printer_status():
                 try:
                     printer_info: Dict[str, str] = {
                         'guid': printer.guid,
+                        'name': printer.get_system_name(),
                         'printer_status': printer.get_printer_status(),
                         'print_job_state': printer.get_print_job_state()
                     }
