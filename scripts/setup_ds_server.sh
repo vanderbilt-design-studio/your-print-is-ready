@@ -1,5 +1,5 @@
 
-# Update iot.vanderbilt.design DNS record with current EC2 instance info
+# Update iot.vanderbilt.design DNS record with current EC2 instance info (special thanks to https://www.lambrospetrou.com/articles/aws-update-route53-recordset-diy-load-balancer/)
 IP=$( curl http://169.254.169.254/latest/meta-data/public-ipv4 )  
 HOSTED_ZONE_ID=$( aws route53 list-hosted-zones-by-name | grep -B 1 -e "iot.vanderbilt.design" | sed 's/.*hostedzone\/\([A-Za-z0-9]*\)\".*/\1/' | head -n 1 )
 
@@ -9,7 +9,7 @@ INPUT_JSON='{
     {
       "Action": "UPSERT",
       "ResourceRecordSet": {
-        "Name": "test.lambrospetrou.com",
+        "Name": "iot.vanderbilt.design",
         "Type": "A",
         "TTL": 300,
         "ResourceRecords": [
