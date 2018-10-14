@@ -34,12 +34,12 @@ async def notify_of_state_change():
 
 async def register_client(websocket: websockets.WebSocketServerProtocol):
     clients.add(websocket)
-    logging.info(f'Client {websocket.remote_address.host}:{websocket.remote_address.port} joined')
+    logging.info(f'Client {websocket.remote_address.[0]}:{websocket.remote_address.[1]} joined')
     await websocket.send(state_json())
 
 
 async def unregister_client(websocket: websockets.WebSocketServerProtocol):
-    logging.info(f'Client {websocket.remote_address.host}:{websocket.remote_address.port} left')
+    logging.info(f'Client {websocket.remote_address.[0]}:{websocket.remote_address.[1]} left')
     clients.remove(websocket)
 
 
@@ -52,7 +52,7 @@ async def event_loop(websocket: websockets.WebSocketServerProtocol, path):
             async for message in websocket:
                 new_printer_jsons = json.loads(message)
                 if new_printer_jsons != printer_jsons:
-                    logging.info(f'Poller at {websocket.remote_address.host}:{websocket.remote_address.port} sent new json {new_printer_jsons}')
+                    logging.info(f'Poller at {websocket.remote_address[0]}:{websocket.remote_address[1]} sent new json {new_printer_jsons}')
                     await notify_of_state_change()
                     printer_jsons = new_printer_jsons
         finally:
