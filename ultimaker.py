@@ -116,6 +116,19 @@ class Printer():
         self.credentials_dict[self.guid] = Credentials(**credentials_json)
         self.credentials_dict.save()
 
+    def into_printer_status_json(self) -> Dict[str, str]:
+        if not self.is_authorized():
+            return {
+                'guid': self.guid,
+                'name': self.get_system_name()
+            }
+        return {
+            'guid': self.guid,
+            'name': self.get_system_name(),
+            'printer_status': self.get_printer_status(),
+            'print_job_state': self.get_print_job_state()
+        }
+
     # All of the request functions below are from the Ultimaker Swagger Api available at http://PRINTER_ADDRESS/docs/api/
     # You can only call things other than /auth/check and /auth/request when you have credentials.
     # -------------------------------------------------------------------------------------------------------------------
