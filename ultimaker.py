@@ -91,6 +91,7 @@ class Printer():
         self.host = f'{address}:{port}'
         self.credentials_dict = ultimaker_credentials_dict
         self.guid = guid if guid else self.get_system_guid()
+        self.credentials_verified = False
 
     def acquire_credentials(self):
         credentials_json = self.post_auth_request()
@@ -99,9 +100,10 @@ class Printer():
     def credentials(self) -> Credentials:
         if self.guid not in self.credentials_dict:
             self.acquire_credentials()
-        elif not self.get_auth_verify(self.credentials_dict[self.guid]):
+        elif not self.credentials_verified not self.get_auth_verify(self.credentials_dict[self.guid]):
             del self.credentials_dict[self.guid]
             self.acquire_credentials()
+        self.credentials_verified = True
         return self.credentials_dict[self.guid]
 
     def digest_auth(self) -> HTTPDigestAuth:
@@ -117,17 +119,17 @@ class Printer():
         self.credentials_dict.save()
 
     def into_printer_status_json(self) -> Dict[str, str]:
-        if not self.is_authorized():
+        try:
             return {
                 'guid': self.guid.hex,
-                'name': self.get_system_name()
+                'name': self.get_system_name(),
+                'printer_status': self.get_printer_status(),
             }
-        return {
-            'guid': self.guid.hex,
-            'name': self.get_system_name(),
-            'printer_status': self.get_printer_status(),
-            'print_job_state': self.get_print_job_state()
-        }
+        except:
+            return {
+                'guid': self.guid.hex,
+                'name': self.get_system_name(),
+            }
 
     # All of the request functions below are from the Ultimaker Swagger Api available at http://PRINTER_ADDRESS/docs/api/
     # You can only call things other than /auth/check and /auth/request when you have credentials.
@@ -149,7 +151,7 @@ class Printer():
 
     def get_printer_status(self) -> str:
         return requests.get(
-            url=f"http://{self.host}/api/v1/printer/status", auth=self.digest_auth()).text
+            url=f"http://{self.host}/api/v1/printer/status", auth=self.digest_auth()).json()
 
     def get_print_job(self) -> PrintJob:
         return PrintJob(**requests.get(
@@ -157,14 +159,14 @@ class Printer():
 
     def get_print_job_state(self) -> str:
         return requests.get(
-            url=f"http://{self.host}/api/v1/print_job/state", auth=self.digest_auth()).text
+            url=f"http://{self.host}/api/v1/print_job/state", auth=self.digest_auth()).json()
 
     def put_system_display_message(self, message: str, button_caption: str) -> str:
-        return requests.put(url=f"http://{self.host}/api/v1/system/display_message", auth=self.digest_auth(), json={'message': message, 'button_caption': button_caption}).text
+        return requests.put(url=f"http://{self.host}/api/v1/system/display_message", auth=self.digest_auth(), json={'message': message, 'button_caption': button_caption}).json()
 
     # Doesn't work as far as I've tested it
     def put_beep(self, frequency: float, duration: float) -> str:
-        return requests.put(url=f"http://{self.host}/api/v1/beep", auth=self.digest_auth(), json={'frequency': frequency, 'duration': duration}).text
+        return requests.put(url=f"http://{self.host}/api/v1/beep", auth=self.digest_auth(), json={'frequency': frequency, 'duration': duration}).json()
 
     def get_system_guid(self) -> UUID:
         return UUID(requests.get(url=f'http://{self.host}/api/v1/system/guid').json())
