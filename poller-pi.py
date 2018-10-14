@@ -10,43 +10,54 @@ from config import server_uri, ultimaker_application_name, ultimaker_user_name
 from uuid import UUID
 import json
 import os
+import ssl
+import logging
+
+logging.basicConfig(filename='/var/log/poller-pi.log')
 
 x_api_key = os.environ['X_API_KEY']
 
-printers: Dict[str, Printer] = {}
+printers_by_name: Dict[str, Printer] = {}
 
 
 class PrinterListener:
     def remove_service(self, zeroconf, type, name):
-        printers.pop(name)
-        print("Service %s removed" % (name,))
+        printers_by_name.pop(name)
+        logging.info(f"Service {name} removed")
 
     def add_service(self, zeroconf, type, name):
-        print("Service %s added" % (name,))
         info: ServiceInfo = zeroconf.get_service_info(type, name)
         printer = Printer(socket.inet_ntoa(info.address), info.port)
-        printers[name] = printer
-        print(printer.guid, printer.get_printer_status())
+        printers_by_name[name] = printer
+        logging.info(
+            f"Service {name} added: {info} guid:{printer.guid} status: {printer.get_printer_status()}")
 
 
 zeroconf = Zeroconf()
 listener = PrinterListener()
 browser = ServiceBrowser(zeroconf, "_ultimaker._tcp.local.", listener)
 
+ssl_context = ssl.create_default_context()
+
 
 async def send_printer_status():
-    async with websockets.connect(server_uri) as websocket:
+    async with websockets.connect(server_uri, ssl=ssl_context) as websocket:
         while True:
+            printer_jsons: List[Dict[str, str]] = []
             printer: Printer
-            for printer in list(printers.values()):
+            for printer in list(printers_by_name.values()):
                 try:
-                    printer_status_json: Dict[str, str] = printer.into_printer_status_json()
+                    printer_status_json: Dict[str,
+                                              str] = printer.into_printer_status_json()
+                    printer_jsons.append(printer_status_json)
                 except Exception as e:
-                    print(
+                    logging.warning(
                         f'Exception getting info for printer {printer.guid}, it may no longer exist: {e}')
                     continue
-                await websocket.send(json.dumps(printer_status_json))
-                await asyncio.sleep(0.5)
+            printer_jsons_str: str = json.dumps(printer_jsons)
+            logging.info(f'Sending {printer_jsons_str}')
+            await websocket.send(printer_jsons_str)
+            await asyncio.sleep(1)
 
 try:
     asyncio.get_event_loop().run_until_complete(send_printer_status())

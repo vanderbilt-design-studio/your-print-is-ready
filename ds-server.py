@@ -9,12 +9,12 @@ import secrets
 from typing import Set
 import os
 
-logging.basicConfig()
+logging.basicConfig(filename='/var/log/ds-server.log')
 
 x_api_key = os.environ['X_API_KEY']
 
-# Last-value caching of printers
-printers = []
+# Last-value caching of the poller pi response
+printer_jsons = []
 
 poller_pi = None
 
@@ -22,7 +22,7 @@ clients: Set[websockets.WebSocketServerProtocol] = set()
 
 
 def state_json() -> str:
-    return json.dumps(printers)
+    return json.dumps(printer_jsons)
 
 
 async def notify_of_state_change():
@@ -46,10 +46,10 @@ async def event_loop(websocket: websockets.WebSocketServerProtocol, path):
         poller_pi = websocket
         try:
             async for message in websocket:
-                new_printers = json.loads(message)
-                if new_printers != printers:
+                new_printer_jsons = json.loads(message)
+                if new_printer_jsons != printer_jsons:
                     await notify_of_state_change()
-                    printers = new_printers
+                    printer_jsons = new_printer_jsons
         finally:
             poller_pi = None
     else:
