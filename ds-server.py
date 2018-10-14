@@ -34,12 +34,12 @@ async def notify_of_state_change():
 
 async def register_client(websocket: websockets.WebSocketServerProtocol):
     clients.add(websocket)
-    logging.info(f'Client {websocket.remote_address.[0]}:{websocket.remote_address.[1]} joined')
+    logging.info(f'Client {websocket.remote_address[0]}:{websocket.remote_address[1]} joined')
     await websocket.send(state_json())
 
 
 async def unregister_client(websocket: websockets.WebSocketServerProtocol):
-    logging.info(f'Client {websocket.remote_address.[0]}:{websocket.remote_address.[1]} left')
+    logging.info(f'Client {websocket.remote_address[0]}:{websocket.remote_address[1]} left')
     clients.remove(websocket)
 
 
