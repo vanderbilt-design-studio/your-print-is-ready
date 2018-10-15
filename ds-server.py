@@ -10,7 +10,7 @@ from typing import Set, List
 import os
 from config import logging_format
 
-logging.basicConfig(filename='/var/log/ds-server.log',
+logging.basicConfig(filename=os.environ['HOME'] + '/poller-pi.log',
                     level=logging.INFO, format=logging_format)
 
 x_api_key = os.environ['X_API_KEY']
@@ -54,6 +54,7 @@ async def reclassify_client_as_poller(websocket: websockets.WebSocketServerProto
 
 
 async def event_loop(websocket: websockets.WebSocketServerProtocol, path):
+    global printer_jsons
     await register_client(websocket)
     try:
         # This forces the server to keep the connection alive until the client leaves, and for the poller, it can send messages

@@ -123,7 +123,7 @@ class Printer():
             return {
                 'guid': self.guid.hex,
                 'name': self.get_system_name(),
-                'printer_status': self.get_printer_status(),
+                'status': self.get_printer_status(),
             }
         except:
             return {
