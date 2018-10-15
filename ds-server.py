@@ -41,16 +41,19 @@ async def register_client(websocket: websockets.WebSocketServerProtocol):
 
 
 async def unregister_client(websocket: websockets.WebSocketServerProtocol):
-    logging.info(
-        f'Client {websocket.remote_address[0]}:{websocket.remote_address[1]} left')
-    clients.remove(websocket)
+    if websocket in clients:
+        logging.info(
+            f'Client {websocket.remote_address[0]}:{websocket.remote_address[1]} left')
+        clients.remove(websocket)
+    else:
+        logging.info(
+            f'Poller {websocket.remote_address[0]}:{websocket.remote_address[1]} left')
 
 
 async def reclassify_client_as_poller(websocket: websockets.WebSocketServerProtocol):
-    if websocket in clients:
-        logging.info(
-            f'Client {websocket.remote_address[0]}:{websocket.remote_address[1]} is actually a poller, removing from clients list')
-        clients.remove(websocket)
+    logging.info(
+        f'Client {websocket.remote_address[0]}:{websocket.remote_address[1]} is actually a poller, reclassifying')
+    clients.remove(websocket)
 
 
 async def event_loop(websocket: websockets.WebSocketServerProtocol, path):
