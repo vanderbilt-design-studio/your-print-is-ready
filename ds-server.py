@@ -10,7 +10,7 @@ from typing import Set, List
 import os
 from config import logging_format
 
-logging.basicConfig(filename=os.environ['HOME'] + '/poller-pi.log',
+logging.basicConfig(filename=os.environ['HOME'] + '/ds-server.log',
                     level=logging.INFO, format=logging_format)
 
 x_api_key = os.environ['X_API_KEY']
