@@ -7,6 +7,8 @@ files:
     destination: /opt/your-print-is-ready/
   - source: /requirements.txt
     destination: /opt/your-print-is-ready/
+  - source: /scripts/run.sh
+    destination: /opt/your-print-is-ready/run.sh
 hooks:
   BeforeInstall:
     - location: scripts/setup_ds_server.sh
