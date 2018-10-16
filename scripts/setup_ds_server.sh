@@ -36,5 +36,4 @@ for ((i=1;i<len;i++)); do EMAIL=$EMAIL${EMAIL: -i*2:1}; done; EMAIL=${EMAIL:len-
 certbot certonly --dns-route53 --dns-route53-propagation-seconds 15 -d iot.vanderbilt.design --email $EMAIL --agree-tos -n
 
 
-mkdir -p your-print-is-ready
-rm -rf /opt/your-print-is-ready/*
+mkdir /opt/your-print-is-ready || rm -rf /opt/your-print-is-ready/*
