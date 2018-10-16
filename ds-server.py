@@ -42,8 +42,9 @@ async def register_client(websocket: websockets.WebSocketServerProtocol):
 
 async def unregister_client(websocket: websockets.WebSocketServerProtocol):
     if websocket in clients:
-        logging.info(
-            f'Client {websocket.remote_address[0]}:{websocket.remote_address[1]} left')
+        if websocket is not None:
+            logging.info(
+                f'Client {websocket.remote_address[0]}:{websocket.remote_address[1]} left')
         clients.remove(websocket)
     else:
         logging.info(
