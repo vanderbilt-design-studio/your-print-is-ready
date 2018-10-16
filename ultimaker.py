@@ -7,6 +7,7 @@ from config import ultimaker_application_name, ultimaker_user_name, ultimaker_cr
 import json
 from uuid import UUID
 import re
+from datetime import timedelta
 
 # The mDNS response looks like this:
 #   ServiceInfo(
@@ -131,14 +132,17 @@ class Printer():
             }
             if status == 'printing':
                 ultimaker_json['print_job'] = {
-                    'time_elapsed': self.get_print_job_time_elapsed(),
-                    'time_total': self.get_print_job_time_total(),
+                    'time_elapsed': str(self.get_print_job_time_elapsed()),
+                    'time_total': str(self.get_print_job_time_total()),
                     'progress': self.get_print_job_progress(),
                     'state': self.get_print_job_state(),
                 }
+            return ultimaker_json
         except:
             return {
-                'name': self.get_system_name(),
+                'system': {
+                    'name': self.get_system_name(),
+                },
             }
 
     # All of the request functions below are from the Ultimaker Swagger Api available at http://PRINTER_ADDRESS/docs/api/
@@ -171,13 +175,13 @@ class Printer():
         return requests.get(
             url=f"http://{self.host}/api/v1/print_job/state", auth=self.digest_auth()).json()
 
-    def get_print_job_time_elapsed(self) -> int:
-        return requests.get(
-            url=f"http://{self.host}/api/v1/print_job/time_elapsed", auth=self.digest_auth()).json()
+    def get_print_job_time_elapsed(self) -> timedelta:
+        return timedelta(seconds=requests.get(
+            url=f"http://{self.host}/api/v1/print_job/time_elapsed", auth=self.digest_auth()).json())
 
-    def get_print_job_time_total(self) -> int:
-        return requests.get(
-            url=f"http://{self.host}/api/v1/print_job/time_total", auth=self.digest_auth()).json()
+    def get_print_job_time_total(self) -> timedelta:
+        return timedelta(seconds=requests.get(
+            url=f"http://{self.host}/api/v1/print_job/time_total", auth=self.digest_auth()).json())
 
     def get_print_job_progress(self) -> float:
         return requests.get(
