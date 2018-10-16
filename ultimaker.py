@@ -118,16 +118,26 @@ class Printer():
         self.credentials_dict[self.guid] = Credentials(**credentials_json)
         self.credentials_dict.save()
 
-    def into_printer_status_json(self) -> Dict[str, str]:
+    def into_ultimaker_json(self) -> Dict[str, str]:
         try:
-            return {
-                'guid': self.guid.hex,
-                'name': self.get_system_name(),
-                'status': self.get_printer_status(),
+            status = self.get_printer_status()
+            ultimaker_json = {
+                'system': {
+                    'name': self.get_system_name(),
+                },
+                'printer': {
+                    'status': status,
+                },
             }
+            if status == 'printing':
+                ultimaker_json['print_job'] = {
+                    'time_elapsed': self.get_print_job_time_elapsed(),
+                    'time_total': self.get_print_job_time_total(),
+                    'progress': self.get_print_job_progress(),
+                    'state': self.get_print_job_state(),
+                }
         except:
             return {
-                'guid': self.guid.hex,
                 'name': self.get_system_name(),
             }
 
@@ -160,6 +170,22 @@ class Printer():
     def get_print_job_state(self) -> str:
         return requests.get(
             url=f"http://{self.host}/api/v1/print_job/state", auth=self.digest_auth()).json()
+
+    def get_print_job_time_elapsed(self) -> int:
+        return requests.get(
+            url=f"http://{self.host}/api/v1/print_job/time_elapsed", auth=self.digest_auth()).json()
+
+    def get_print_job_time_total(self) -> int:
+        return requests.get(
+            url=f"http://{self.host}/api/v1/print_job/time_total", auth=self.digest_auth()).json()
+
+    def get_print_job_progress(self) -> float:
+        return requests.get(
+            url=f"http://{self.host}/api/v1/print_job/progress", auth=self.digest_auth()).json()
+
+    def get_print_job_name(self) -> str:
+        return requests.get(
+            url=f"http://{self.host}/api/v1/print_job/name", auth=self.digest_auth()).json()
 
     def put_system_display_message(self, message: str, button_caption: str) -> str:
         return requests.put(url=f"http://{self.host}/api/v1/system/display_message", auth=self.digest_auth(), json={'message': message, 'button_caption': button_caption}).json()

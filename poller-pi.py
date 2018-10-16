@@ -50,7 +50,7 @@ async def send_printer_status():
             printer: Printer
             for printer in list(printers_by_name.values()):
                 try:
-                    printer_status_json: Dict[str, str] = printer.into_printer_status_json()
+                    printer_status_json: Dict[str, str] = printer.into_ultimaker_json()
                     printer_jsons.append(printer_status_json)
                 except Exception as e:
                     logging.warning(
