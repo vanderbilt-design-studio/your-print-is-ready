@@ -8,7 +8,9 @@ with open(config.ultimaker_credentials_filename, 'w+') as credentials_file:
 from ultimaker import Printer, CredentialsDict, Credentials
 from uuid import UUID, uuid4
 import os
+from datetime import timedelta
 
+mock_name = '2D Printer'
 mock_guid: UUID = uuid4()
 mock_address = '127.0.0.1'
 mock_port = '8080'
@@ -16,17 +18,23 @@ mock_id = '1234'
 mock_key = 'abcd'
 mock_credentials = Credentials(mock_id, mock_key)
 mock_credentials_json = mock_credentials._asdict()
+mock_print_job_time_elapsed = timedelta(seconds=30)
+mock_print_job_time_total = timedelta(seconds=60)
+mock_print_job_progress = 30./60.
+mock_print_job_state = 'printing'
 
 
 def default_printer_mock() -> Printer:
     printer = Printer(mock_address, mock_port, mock_guid)
     printer.credentials_dict = default_credentials_dict_mock()
     # TODO: understand unittest.mock patch method so the set_credentials method can be asserted on
-    #printer.set_credentials = patch.object(printer, 'set_credentials', wraps=printer.set_credentials)
+    # printer.set_credentials = patch.object(printer, 'set_credentials', wraps=printer.set_credentials)
     printer.post_auth_request = Mock(
         return_value=mock_credentials_json)
     printer.get_auth_check = Mock(return_value='authorized')
     printer.get_auth_verify = Mock(return_value=True)
+    printer.get_system_name = Mock(return_value=mock_name)
+    printer.get_printer_status = Mock(return_value='idle')
     return printer
 
 
@@ -63,8 +71,7 @@ class AcquireCredentialsTest(unittest.TestCase):
 class AlreadyHasCredentialsTest(unittest.TestCase):
     def setUp(self):
         printer = default_printer_mock()
-        printer.credentials = Mock(
-            return_value=Credentials(**mock_credentials_json))
+        printer.credentials = Mock(return_value=mock_credentials)
         self.printer = printer
 
     def test_printer_is_authorized(self):
@@ -72,6 +79,78 @@ class AlreadyHasCredentialsTest(unittest.TestCase):
         self.printer.credentials.assert_called_once()
         self.printer.post_auth_request.assert_not_called()
         self.printer.get_auth_check.assert_called_once()
+
+
+class UltimakerJsonTest(unittest.TestCase):
+    def test_expected_json_is_produced_when_idle(self):
+        printer = default_printer_mock()
+        printer.credentials = Mock(return_value=mock_credentials)
+        json = printer.into_ultimaker_json()
+        self.assertDictEqual({
+            'system': {
+                'name': mock_name
+            },
+            'printer': {
+                'status': 'idle'
+            }
+        }, json)
+
+    def test_expected_json_is_produced_when_errored(self):
+        printer = default_printer_mock()
+        printer.credentials = Mock(return_value=mock_credentials)
+        printer.get_printer_status = generic_exception_raiser
+        printer.get_print_job_state = Mock(return_value=mock_print_job_state)
+        json = printer.into_ultimaker_json()
+        self.assertDictEqual({'system': {
+            'name': mock_name
+        }}, json)
+
+    def test_expected_json_is_produced_when_printing(self):
+        printer = default_printer_mock()
+        printer.credentials = Mock(return_value=mock_credentials)
+        printer.get_printer_status = Mock(return_value='printing')
+        printer.get_print_job_time_elapsed = Mock(
+            return_value=mock_print_job_time_elapsed)
+        printer.get_print_job_time_total = Mock(
+            return_value=mock_print_job_time_total)
+        printer.get_print_job_progress = Mock(
+            return_value=mock_print_job_progress)
+        printer.get_print_job_state = Mock(
+            return_value=mock_print_job_state)
+
+        json = printer.into_ultimaker_json()
+        self.assertDictEqual({
+            'system': {
+                'name': mock_name
+            },
+            'printer': {
+                'status': 'printing'
+            },
+            'print_job': {
+                'time_elapsed': str(mock_print_job_time_elapsed),
+                'time_total': str(mock_print_job_time_total),
+                'progress': mock_print_job_progress,
+                'state': mock_print_job_state
+            }
+        }, json)
+
+
+def generic_exception_raiser():
+    raise Exception('An exception has occurred')
+
+
+class VerifiesLoadedCredentialsTest(unittest.TestCase):
+    def setUp(self):
+        printer = default_printer_mock()
+        self.printer = printer
+        self.printer.get_auth_verify = Mock(return_value=False)
+
+    def test_printer_is_not_verified(self):
+        self.assertFalse(self.printer.credentials_verified)
+        self.printer.credentials()
+        self.assertTrue(self.printer.credentials_verified)
+        self.printer.post_auth_request.assert_called_once()
+        self.printer.get_auth_verify.assert_called_once()
 
 
 class CredentialsDictTest(unittest.TestCase):
