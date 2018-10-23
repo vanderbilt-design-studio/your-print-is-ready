@@ -146,7 +146,8 @@ class Printer():
             }
 
     # All of the request functions below are from the Ultimaker Swagger Api available at http://PRINTER_ADDRESS/docs/api/
-    # You can only call things other than /auth/check and /auth/request when you have credentials.
+    # You can usually only call things other than /auth/check and /auth/request when you have credentials. As far as I've
+    # tested, you don't need credentials for get queries. To be on the safe side, credentials are requested.
     # -------------------------------------------------------------------------------------------------------------------
 
     def post_auth_request(self) -> Dict:
