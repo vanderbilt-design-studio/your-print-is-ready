@@ -17,4 +17,4 @@ deploy:
   application: your-print-is-ready
   deployment_group: your-print-is-ready
   on:
-    repo: sameer/your-print-is-ready
+    branch: master
