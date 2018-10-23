@@ -10,7 +10,7 @@ from typing import Set, List
 import os
 from config import logging_format
 
-logging.basicConfig(filename='dev/null',
+logging.basicConfig(filename='/dev/null',
                     level=logging.INFO, format=logging_format)
 
 x_api_key = os.environ['X_API_KEY']
