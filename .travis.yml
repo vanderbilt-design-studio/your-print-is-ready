@@ -8,13 +8,3 @@ install:
 script:
 - coverage run --omit '/home/travis/virtualenv*' -m unittest -v
 after_success: coveralls
-deploy:
-  provider: codedeploy
-  revision_type: github
-  access_key_id: AKIAJINEKHLOF7ODMQEQ
-  secret_access_key:
-    secure: IHgK53UidDtWCLStFdDUVis1VBwG0gbLSYgxt2YH+rONROLhZbEo54laowmTxycx7+WhuxUzfTqbUgpz9PPVTSc6+vz61JDRTUC54tR5y6EgeFLdM6SrrWkDxIveadaanLGXoSnT3aFRXKVZ9cVTz/Soh4wx3cP33obsp2+uR4V2wRZpjdB2gaD1sxL4Pgav/0s6ely0bJ0vM9aJRAosHmHfnN04L6PZR1mAjxLNNgqTrcAqXTJBeSlwPnuBvUY0h69IqtEGUpc0XH6y94M/qfu4mAk8R4QxQDhJG7xrt6EmyuSlWn8d5Qg/qF0IwfqHUHrdPHN/NJR7z449gdu0DqvTv+X+Km6rw3VCPEGrPYaqvAhdV6qaqB818KOTFoxCMtcj6HEhg2Vlax6rlcbJ/JhlntuMX6lovLkaF7mjHEsXhukiNsXSBVpptR/j5wih6XWeuMybGZ7eGeMt3U0SYB0wr2jleF94MUgITWGeE5z7e5fxHuAfdapxf6nx9LK77r1QB1yfm5tfHLxkUHJqKe5IapF9k+BmbcaiTGEoDKK3dqDL3sRszeo+xad2Jg65qMpze5ucg70jkC/wq5wrKVIJo355F4M6lnqhAoGEZEp/kInSNzgUga9+MUMdzpFBdd3a44TYAI/rRQ21rlgK3BC21Q45lwesDkpm7BM2Ac8=
-  application: your-print-is-ready
-  deployment_group: your-print-is-ready
-  on:
-    branch: master
