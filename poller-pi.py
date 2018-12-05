@@ -15,7 +15,7 @@ import logging
 import socket
 
 
-logging.basicConfig(filename=os.environ['HOME'] + '/poller-pi.log',
+logging.basicConfig(filename='/dev/null',
                     level=logging.INFO, format=logging_format)
 
 x_api_key = os.environ['X_API_KEY']
