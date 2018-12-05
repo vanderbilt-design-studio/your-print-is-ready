@@ -1,86 +1,78 @@
-import asyncio
-import pathlib
-import ssl
-import websockets
-import json
-import http
-import logging
-import secrets
-from typing import Set, List
-import os
 from config import logging_format
+import os
+from typing import Set, List
+import secrets
+import logging
+import http
+import json
+import ssl
+import pathlib
+from datetime import datetime, timedelta
+from flask import Flask
+from flask_sockets import Sockets
 
-logging.basicConfig(filename='/dev/null',
-                    level=logging.INFO, format=logging_format)
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.urandom(24)
+sockets = Sockets(app)
+
+logging.basicConfig(level=logging.INFO, format=logging_format)
 
 x_api_key = os.environ['X_API_KEY']
 
 # Last-value caching of the poller pi response
 printer_jsons = []
+printer_jsons_last: datetime = None
 
-poller_pi = None
-
-clients: Set[websockets.WebSocketServerProtocol] = set()
+clients: Set = set()
 
 
 def state_json() -> str:
     return json.dumps(printer_jsons)
 
 
-async def notify_of_state_change():
-    if len(clients) > 0:
-        message = state_json()
-        await asyncio.wait([client.send(message) for client in clients])
+def notify_of_state_change(ws):
+    if ws in clients:
+        if printer_jsons_last is None or datetime.utcnow() - printer_jsons_last > timedelta(seconds=30):
+            print('Poller has not sent a message in > 30 seconds, sending nothing')
+            ws.send('[]')
+        ws.send(state_json())
 
 
-async def register_client(websocket: websockets.WebSocketServerProtocol):
-    clients.add(websocket)
-    logging.info(
-        f'Client {websocket.remote_address[0]}:{websocket.remote_address[1]} joined')
-    await websocket.send(state_json())
-
-
-async def unregister_client(websocket: websockets.WebSocketServerProtocol):
-    if websocket in clients:
-        if websocket is not None:
-            logging.info(
-                f'Client {websocket.remote_address[0]}:{websocket.remote_address[1]} left')
-        clients.remove(websocket)
-    else:
-        logging.info(
-            f'Poller {websocket.remote_address[0]}:{websocket.remote_address[1]} left')
-
-
-async def reclassify_client_as_poller(websocket: websockets.WebSocketServerProtocol):
-    logging.info(
-        f'Client {websocket.remote_address[0]}:{websocket.remote_address[1]} is actually a poller, reclassifying')
-    clients.remove(websocket)
-
-
-async def event_loop(websocket: websockets.WebSocketServerProtocol, path):
-    global printer_jsons
-    await register_client(websocket)
+@sockets.route('/')
+def your_print_is_ready(ws):
+    global printer_jsons, printer_jsons_last
+    clients.add(ws)
+    logging.info(f'Client {ws} joined')
     try:
-        # This forces the server to keep the connection alive until the client leaves, and for the poller, it can send messages
-        async for message in websocket:
-            message_json = json.loads(message)
-            if message_json['key'] and secrets.compare_digest(message_json['key'], x_api_key):
+        while not ws.closed:
+            msg = ws.receive()
+            if msg is None:
+                continue
+            message_json = json.loads(msg)
+            if 'key' in message_json and secrets.compare_digest(message_json['key'], x_api_key):
+                if 'printers' not in message_json:
+                    print('Poller {ws} sent a message but it had no printers')
+                    continue
                 new_printer_jsons = message_json['printers']
                 if new_printer_jsons != printer_jsons:
                     logging.info(
-                        f'Poller at {websocket.remote_address[0]}:{websocket.remote_address[1]} sent new json {new_printer_jsons}')
+                        f'Poller {ws} updated values: {printer_jsons}')
                     printer_jsons = new_printer_jsons
-                    await notify_of_state_change()
+                    printer_jsons_last = datetime.utcnow()
+                    for client in clients:
+                        notify_of_state_change(client)
+            else:
+                print(f'Client {ws} key did not match expected key')
             continue
     finally:
-        await unregister_client(websocket)
+        if not ws.closed:
+            ws.close()
+        logging.info(f'Client {ws} left')
+        clients.remove(ws)
 
 
-ssl_context: ssl.SSLContext = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-ssl_context.load_cert_chain(pathlib.Path(
-    '/etc/letsencrypt/live/iot.vanderbilt.design/fullchain.pem'),
-    keyfile=pathlib.Path('/etc/letsencrypt/live/iot.vanderbilt.design/privkey.pem'))
-
-asyncio.get_event_loop().run_until_complete(
-    websockets.serve(event_loop, '0.0.0.0', 443, ssl=ssl_context))
-asyncio.get_event_loop().run_forever()
+if __name__ == '__main__':
+    from gevent import pywsgi
+    from geventwebsocket.handler import WebSocketHandler
+    server = pywsgi.WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
+    server.serve_forever()
