@@ -56,7 +56,7 @@ def your_print_is_ready(ws):
                 new_printer_jsons = message_json['printers']
                 if new_printer_jsons != printer_jsons:
                     logging.info(
-                        f'Poller {ws} updated values: {printer_jsons}')
+                        f'Poller {ws} updated values')
                     printer_jsons = new_printer_jsons
                     printer_jsons_last = datetime.utcnow()
                     for client in clients:
