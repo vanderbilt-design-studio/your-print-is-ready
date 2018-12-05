@@ -142,7 +142,8 @@ class Printer():
                     'snapshot': self.get_camera_snapshot_uri()
                 }
             return ultimaker_json
-        except:
+        except e:
+            print(f'Exception while generating ultimaker json {e}')
             return {
                 'system': {
                     'name': self.get_system_name(),
