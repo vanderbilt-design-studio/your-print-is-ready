@@ -8,6 +8,7 @@ import json
 from uuid import UUID
 import re
 from datetime import timedelta
+import base64
 
 # The mDNS response looks like this:
 #   ServiceInfo(
@@ -137,6 +138,9 @@ class Printer():
                     'progress': self.get_print_job_progress(),
                     'state': self.get_print_job_state(),
                 }
+                ultimaker_json['camera'] = {
+                    'snapshot': self.get_camera_snapshot_uri()
+                }
             return ultimaker_json
         except:
             return {
@@ -204,3 +208,8 @@ class Printer():
 
     def get_system_name(self) -> str:
         return requests.get(url=f'http://{self.host}/api/v1/system/name').json()
+
+    def get_camera_snapshot_uri(self) -> str:
+        res: requests.Response = requests.get(
+            url=f'http://{self.host}:8080/?action=snapshot')
+        return f"data:{res.headers['Content-Type']};base64,{base64.b64encode(res.content)}"
