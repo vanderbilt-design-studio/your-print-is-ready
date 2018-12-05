@@ -22,6 +22,31 @@ mock_print_job_time_elapsed = timedelta(seconds=30)
 mock_print_job_time_total = timedelta(seconds=60)
 mock_print_job_progress = 30./60.
 mock_print_job_state = 'printing'
+mock_camera_snapshot_uri = 'data:image/png,base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAACBjSFJN\
+AAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAC01BMVEUAAAA4Oz0rLzVLTUhV\
+V04tMTYuMjckKTFNT0k9QED//8qGhWxdXlOMi295eWT//9CHQUgqLzQzNjpMMTqtMkUoMTUkMTUg\
+MTQvMTZbXVKWlHW3tYrDwZG8uo2gn3xtbl0AAAoAAAB8e2XEwJHPy5iQj3IoLDN9fGbGwpKSkHMA\
+AAFGSUW8uIzLxpVzc2BMTkmUknSnpYBfYFQAAACWlHWwrYUAAACfnXuCgmqQhW25tYp1dmJ7PUZZ\
+QUZhPkVYTk9OSkxaTk9YX1tlaF51dWFCMzlbNj+Eem9nZF1ua2NnWldITU00NzosMDU5NTpiXlmM\
+g3ZramR1c2pqaGJmYVssMDZDRESFfHCSh3h7dWttbGW4p5F6d214dGp/eG2dkYF+eG1pY1wFDxxt\
+Z2BcXFh3c2p+eW+GfHGJfHFzamSFgHNtamJfW1ZERUUZHylWVVGxoo15ZF8uKjIAHyUoMTVDMjmH\
+WlqNM0JCMThWMTueMUKrMkWXMkNrMj0AMC4AMC5fMjyDMkBsOUKHc2qQhHZXQkVHLzghMTUALAPR\
+y5i4nX26lnq3lnrGvI/t5qq9tImOZFuMQUmIVFKqmXnl36XX0pzd16DZ053GvY3e2KCWX1rIuI7U\
+y5fLxZTh26PMx5a+uIuxqoK0qoDXzJiOSE26ooDMwpCjnHjBuozLxpXo4qfa053QypfEv5ChmXau\
+pX6JcmGhlHSooHqzroTY0p3Nx5Xw6avZ1Z63sIeyn36klHeMhWyNfmmKfmmpkXWpn32uq4TUz5tz\
+Z1p1OUJQOT+GN0SJOkZyV1aPgXWdkH+Vdm6GenCVi3x5dWyCfnLHs5qAeG58dm2Lg3ZrZ2KekoFy\
+cGixoYxycGdqaWK3pY9+eW/Jt5yhcGulPUuWO0iiOEemQE2ke3Kyl4aiV1u3NUjOMknGMkjFMke+\
+Mke1NkjHMUfJM0nEM0iaQU2MTVKxNEf///+IU9e3AAAAiXRSTlMAAAAAAAAAAAAAAAAAAAAAAAAA\
+AAAAAAAAPqrq/fLAWgcDaub0khBf9JAFItn0SxSRuy0CleEFsP7+/YD+/v7+/v7+/s9r9v7+/v7j\
+RDaR6P7+/vRaKybd/v7+/v7+/v74UQWP5v7+/v7+/uyeGxVn9txiAiCj7/BAYPPz1XUEBWvJ2/ju\
+sE0aAWTj0qsAAAABYktHRPA1uO9UAAAAB3RJTUUH4gwEEAYJ7mrWLQAAARtJREFUGNMBEAHv/gAA\
+AAECABkaGxwdHh8gAwQFAAAGByEiI4mKi4yNJCUmCAkAAAAKJyiOj5CRkpOUlSkqAgALDCsslpeY\
+mZqbnJ2eLS4NAA4vMJ+goaKjpKWmp6ipMTIAMzSqq6ytrq+wsbKztLW2NQA2N7e4ubq7vL04Ob6/\
+wME6AA87wsM8PcQ+P0DFxkFCQ0QAEEVGx0dIyMlJSsrLzM1LTABNTk/Oz9DRUFFS0tPP1FNUAFVW\
+V9XWWFlaW1xdXl/XYGEABWJjZNhlZmfZaGlq2mtsbQAREm5vcNvc3d7f4OHicXJzAAUFdHV24+Tl\
+5ufl6Ol3eBMAAAUUeXrq6+zt7u97fH1+FQAABRZ/gIGBgoOEhYaHiBcYvRtyWUVkU38AAAAldEVY\
+dGRhdGU6Y3JlYXRlADIwMTgtMTItMDRUMjI6MDY6MDktMDY6MDDsXvBMAAAAJXRFWHRkYXRlOm1v\
+ZGlmeQAyMDE4LTEyLTA0VDIyOjA2OjA5LTA2OjAwnQNI8AAAAABJRU5ErkJggg=='
 
 
 def default_printer_mock() -> Printer:
@@ -117,6 +142,9 @@ class UltimakerJsonTest(unittest.TestCase):
             return_value=mock_print_job_progress)
         printer.get_print_job_state = Mock(
             return_value=mock_print_job_state)
+        printer.get_camera_snapshot_uri = Mock(
+            return_value=mock_camera_snapshot_uri
+        )
 
         json = printer.into_ultimaker_json()
         self.assertDictEqual({
@@ -131,6 +159,9 @@ class UltimakerJsonTest(unittest.TestCase):
                 'time_total': str(mock_print_job_time_total),
                 'progress': mock_print_job_progress,
                 'state': mock_print_job_state
+            },
+            'camera': {
+                'snapshot': mock_camera_snapshot_uri
             }
         }, json)
 
