@@ -90,6 +90,7 @@ PrintJob = namedtuple('PrintJob', ['time_elapsed', 'time_total', 'datetime_start
 
 class Printer():
     def __init__(self, address: str, port: str, guid=None):
+        self.address = address
         self.host = f'{address}:{port}'
         self.credentials_dict = ultimaker_credentials_dict
         self.guid = guid if guid else self.get_system_guid()
@@ -212,5 +213,5 @@ class Printer():
 
     def get_camera_snapshot_uri(self) -> str:
         res: requests.Response = requests.get(
-            url=f'http://{self.host}:8080/?action=snapshot')
+            url=f'http://{self.address}:8080/?action=snapshot')
         return f"data:{res.headers['Content-Type']};base64,{base64.b64encode(res.content)}"
