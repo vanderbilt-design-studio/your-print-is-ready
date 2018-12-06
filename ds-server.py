@@ -67,7 +67,7 @@ def your_print_is_ready(ws: WebSocket):
                     if ws in clients:
                         clients.remove(ws)
                     if 'printers' not in message_json:
-                        print(
+                        logging.info(
                             f'Poller {ws} sent a message but it had no printers')
                         continue
                     new_printer_jsons = message_json['printers']
@@ -78,9 +78,9 @@ def your_print_is_ready(ws: WebSocket):
                         printer_jsons_last = datetime.utcnow()
                         for client in clients:
                             gevent.spawn(lambda: update(client))
-                    print(f'Done processing updates for poller {ws}')
+                    logging.info(f'Processed values from poller {ws}')
                 else:
-                    print(f'Client {ws} key did not match expected key')
+                    logging.info(f'Client {ws} key did not match expected key')
     finally:
         if ws and not ws.closed:
             ws.close()
