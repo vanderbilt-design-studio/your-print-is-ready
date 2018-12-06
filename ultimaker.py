@@ -217,4 +217,4 @@ class Printer():
     def get_camera_snapshot_uri(self) -> str:
         res: requests.Response = requests.get(
             url=f'http://{self.address}:8080/?action=snapshot')
-        return f"data:{res.headers['Content-Type']};base64,{base64.b64encode(res.content)}"
+        return f"data:{res.headers['Content-Type']};base64,{base64.b64encode(res.content).decode('utf-8')}"
