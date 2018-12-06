@@ -37,14 +37,17 @@ def state_json() -> str:
 
 
 # This is needed to prevent Heroku from closing WebSockets
+# Heroku's timeout is at 55 seconds, so this should be safe
+# enough to prevent connection killing.
+# https://devcenter.heroku.com/articles/websockets#timeouts
 def keep_alive(ws: WebSocket):
-    if not ws.closed:
+    if ws and ws in clients and not ws.closed:
         ws.send(state_json())
         gevent.spawn_later(50, lambda: keep_alive(ws))
 
 
-def notify_of_state_change(ws: WebSocket):
-    if ws in clients:
+def update(ws: WebSocket):
+    if ws and ws in clients and not ws.closed:
         ws.send(state_json())
 
 
@@ -72,11 +75,11 @@ def your_print_is_ready(ws: WebSocket):
                         printer_jsons = new_printer_jsons
                         printer_jsons_last = datetime.utcnow()
                         for client in clients:
-                            notify_of_state_change(client)
+                            gevent.spawn(lambda: update(client))
                 else:
                     print(f'Client {ws} key did not match expected key')
     finally:
-        if not ws.closed:
+        if ws and not ws.closed:
             ws.close()
         logging.info(f'Client {ws} left')
         clients.remove(ws)
