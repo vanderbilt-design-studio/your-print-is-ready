@@ -77,7 +77,7 @@ def your_print_is_ready(ws: WebSocket):
                         printer_jsons = new_printer_jsons
                         printer_jsons_last = datetime.utcnow()
                         for client in clients:
-                            gevent.spawn(lambda: update(client))
+                            update(client)
                     logging.info(f'Processed values from poller {ws}')
                 else:
                     logging.info(f'Client {ws} key did not match expected key')
