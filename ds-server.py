@@ -28,7 +28,9 @@ clients: Set = set()
 
 
 def state_json() -> str:
-    return json.dumps(printer_jsons)
+    return json.dumps({
+        'printers': printer_jsons,
+    })
 
 
 def notify_of_state_change(ws):
@@ -52,7 +54,8 @@ def your_print_is_ready(ws):
                 message_json = json.loads(msg)
                 if 'key' in message_json and secrets.compare_digest(message_json['key'], x_api_key):
                     if 'printers' not in message_json:
-                        print('Poller {ws} sent a message but it had no printers')
+                        print(
+                            f'Poller {ws} sent a message but it had no printers')
                         continue
                     new_printer_jsons = message_json['printers']
                     if new_printer_jsons != printer_jsons:
