@@ -10,6 +10,7 @@ import pathlib
 from datetime import datetime, timedelta
 from flask import Flask
 from flask_sockets import Sockets
+import gevent
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -45,25 +46,24 @@ def your_print_is_ready(ws):
     logging.info(f'Client {ws} joined')
     try:
         while not ws.closed:
+            gevent.sleep(0.1)
             msg = ws.receive()
-            if msg is None:
-                continue
-            message_json = json.loads(msg)
-            if 'key' in message_json and secrets.compare_digest(message_json['key'], x_api_key):
-                if 'printers' not in message_json:
-                    print('Poller {ws} sent a message but it had no printers')
-                    continue
-                new_printer_jsons = message_json['printers']
-                if new_printer_jsons != printer_jsons:
-                    logging.info(
-                        f'Poller {ws} updated values')
-                    printer_jsons = new_printer_jsons
-                    printer_jsons_last = datetime.utcnow()
-                    for client in clients:
-                        notify_of_state_change(client)
-            else:
-                print(f'Client {ws} key did not match expected key')
-            continue
+            if msg:
+                message_json = json.loads(msg)
+                if 'key' in message_json and secrets.compare_digest(message_json['key'], x_api_key):
+                    if 'printers' not in message_json:
+                        print('Poller {ws} sent a message but it had no printers')
+                        continue
+                    new_printer_jsons = message_json['printers']
+                    if new_printer_jsons != printer_jsons:
+                        logging.info(
+                            f'Poller {ws} updated values')
+                        printer_jsons = new_printer_jsons
+                        printer_jsons_last = datetime.utcnow()
+                        for client in clients:
+                            notify_of_state_change(client)
+                else:
+                    print(f'Client {ws} key did not match expected key')
     finally:
         if not ws.closed:
             ws.close()
