@@ -64,6 +64,8 @@ def your_print_is_ready(ws: WebSocket):
             if msg:
                 message_json = json.loads(msg)
                 if 'key' in message_json and secrets.compare_digest(message_json['key'], x_api_key):
+                    if ws in clients:
+                        clients.remove(ws)
                     if 'printers' not in message_json:
                         print(
                             f'Poller {ws} sent a message but it had no printers')
@@ -76,6 +78,7 @@ def your_print_is_ready(ws: WebSocket):
                         printer_jsons_last = datetime.utcnow()
                         for client in clients:
                             gevent.spawn(lambda: update(client))
+                    print(f'Done processing updates for poller {ws}')
                 else:
                     print(f'Client {ws} key did not match expected key')
     finally:
