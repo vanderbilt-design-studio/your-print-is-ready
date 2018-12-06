@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from flask import Flask
 from flask_sockets import Sockets
 import gevent
+from geventwebsocket.websocket import WebSocket
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -21,32 +22,39 @@ logging.basicConfig(level=logging.INFO, format=logging_format)
 x_api_key = os.environ['X_API_KEY']
 
 # Last-value caching of the poller pi response
-printer_jsons = []
+printer_jsons: List = []
 printer_jsons_last: datetime = None
 
-clients: Set = set()
+clients: Set[WebSocket] = set()
 
 
 def state_json() -> str:
+    if printer_jsons_last is None or datetime.utcnow() - printer_jsons_last > timedelta(seconds=30):
+        return '{ "printers": [] }'
     return json.dumps({
         'printers': printer_jsons,
     })
 
 
-def notify_of_state_change(ws):
+# This is needed to prevent Heroku from closing WebSockets
+def keep_alive(ws: WebSocket):
+    if not ws.closed:
+        ws.send(state_json())
+        gevent.spawn_later(50, lambda: keep_alive(ws))
+
+
+def notify_of_state_change(ws: WebSocket):
     if ws in clients:
-        if printer_jsons_last is None or datetime.utcnow() - printer_jsons_last > timedelta(seconds=30):
-            print('Poller has not sent a message in > 30 seconds, sending nothing')
-            ws.send('[]')
         ws.send(state_json())
 
 
 @sockets.route('/')
-def your_print_is_ready(ws):
+def your_print_is_ready(ws: WebSocket):
     global printer_jsons, printer_jsons_last
     clients.add(ws)
     logging.info(f'Client {ws} joined')
     try:
+        keep_alive(ws)
         while not ws.closed:
             gevent.sleep(0.1)
             msg = ws.receive()
