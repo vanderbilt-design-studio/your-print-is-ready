@@ -110,6 +110,9 @@ class UltimakerJsonTest(unittest.TestCase):
     def test_expected_json_is_produced_when_idle(self):
         printer = default_printer_mock()
         printer.credentials = Mock(return_value=mock_credentials)
+        printer.get_camera_snapshot_uri = Mock(
+            return_value=mock_camera_snapshot_uri
+        )
         json = printer.into_ultimaker_json()
         self.assertDictEqual({
             'system': {
@@ -117,6 +120,9 @@ class UltimakerJsonTest(unittest.TestCase):
             },
             'printer': {
                 'status': 'idle'
+            },
+            'camera': {
+                'snapshot': mock_camera_snapshot_uri
             }
         }, json)
 

@@ -59,7 +59,7 @@ async def send_printer_status():
             printer_jsons_str: str = json.dumps({'printers': printer_jsons, 'key': x_api_key})
             logging.info(f'Sending {printer_jsons_str}')
             await websocket.send(printer_jsons_str)
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
 
 
 try:

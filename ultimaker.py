@@ -131,6 +131,9 @@ class Printer():
                 'printer': {
                     'status': status,
                 },
+                'camera': {
+                    'snapshot': self.get_camera_snapshot_uri()
+                }
             }
             if status == 'printing':
                 ultimaker_json['print_job'] = {
